@@ -1,0 +1,165 @@
+*cd "C:\Users\absim\OneDrive\Documents\ky.data.txt"
+
+copy https://download.bls.gov/pub/time.series/la/la.data.24.Kentucky ky.data.txt, replace
+clear
+import delimited ky.data.txt, delimiters(tab)
+save ky.data, replace
+
+gen seasonal=substr(series_id,3,1)
+gen areatype=substr(series_id,4,2)
+gen county=substr(series_id,8,3)
+gen Measurecode=substr(series_id,19,2)
+gen month=substr(period,2,2)
+destring county Measurecode month, replace
+destring value, replace force
+
+gen ym=ym(year,month)
+format ym %tmCCYY
+
+keep if areatype=="CN"
+keep if year>=2000
+keep if seasonal=="U" 
+keep if month!=13
+
+drop areatype footnote_codes seasonal series_id period 
+
+reshape wide value, i(ym county) j(Measurecode)
+
+rename value3 unemprate
+rename value4 unemp
+rename value5 emp
+rename value6 lf
+
+label define KYCounties ///
+	1 "Adair County" /// 
+	3 "Allen County" ///
+	5 "Anderson County" ///
+	7 "Ballard County" ///
+	9 "Barren County" ///
+	11 "Bath County" ///
+	13 "Bell County" ///
+	15 "Boone County" ///
+	17 "Bourbon County" ///
+	19 "Boyd County" ///
+	21 "Boyle County" ///
+	23 "Bracken County" ///
+	25 "Breathitt County" ///
+	27 "Breckinridge County" ///
+	29 "Bullitt County" ///
+	31 "Butler County" ///
+	33 "Caldell County" ///
+	35 "Calloway County" ///
+	37 "Campbell County" ///
+	39 "Carlisle County" ///
+	41 "Carroll County" ///
+	43 "Carter County" ///
+	45 "Casey County" ///
+	47 "Christian County" ///
+	49 "Clark County" ///
+	51 "Clay County" ///
+	53 "Clinton County" ///
+	55 "Crittenden County" ///
+	57 "Cumberland County" ///
+	59 "Daviess County" ///
+	61 "Edmonson County" ///
+	63 "Elliot County" ///
+	65 "Estill County" ///
+	67 "Fayette County" ///
+	69 "Fleming County" ///
+	71 "Floyd County" ///
+	73 "Franklin County" ///
+	75 "Fulton County" ///
+	77 "Gallatin County" ///
+	79 "Garrard County" ///
+	81 "Grant County" ///
+	83 "Graves County" ///
+	85 "Grayson County" ///
+	87 "Green County" ///
+	89 "Greenup County" ///
+	91 "Hancock County" ///
+	93 "Hardin County " ///
+	95 "Harlan County" ///
+	97 "Harrison County" ///
+	99 "Hart County" ///
+	101 "Henderson County" ///
+	103 "Henry County" ///
+	105 "Hickman County" ///
+	107 "Hopkins County" ///
+	109 "Jackson County" ///
+	111 "Jefferson County" ///
+	113 "Jessamine County" ///
+	115 "Johnson County" ///
+	117 "Kenton County" ///
+	119 "Knott County" ///
+	121 "Knox County" ///
+	123 "Larue County" ///
+	125 "Laurel County" ///
+	127 "Lawrence County" ///
+	129 "Lee County" ///
+	131 "Leslie County" ///
+	133 "Letcher County" ///
+	135 "Lewis County" ///
+	137 "Lincoln County" ///
+	139 "Livingston County" ///
+	141 "Logan County" ///
+	143 "Lyon County" ///
+	145 "McCracken County" ///
+	147 "McCreary County" ///
+	149 "McLean County" ///
+	151 "Madison County" ///
+	153 "Magoffin County" ///
+	155 "Marion County" ///
+	157 "Marshall County" ///
+	159 "Martin County" ///
+	161 "Mason County" ///
+	163 "Meade County" ///
+	165 "Menifee County" ///
+	167 "Mercer County" ///
+	169 "Metcalfe County" ///
+	171 "Monroe County" ///
+	173 "Montgomery County" ///
+	175 "Morgan County" ///
+	177 "Muhlenberg County" ///
+	179 "Nelson County" ///
+	181 "Nicholas County" ///
+	183 "Ohio County" ///
+	185 "Oldham County" ///
+	187 "Owen County" ///
+	189 "Owsley County" ///
+	191 "Pendelton County" ///
+	193 "Perry County" ///
+	195 "Pike County" ///
+	197 "Powell County" ///
+	199 "Pulaski County" ///
+	201 "Robertson" ///
+	203 "Rockcastle County" ///
+	205 "Rowan County" ///
+	207 "Russell County" ///
+	209 "Scott County" ///
+	211 "Shelby County" ///
+	213 "Simpson County" ///
+	215 "Spencer County" ///
+	217 "Taylor County" ///
+	219 "Todd County" ///
+	221 "Trigg County" ///
+	223 "Trimble County" ///
+	225 "Union County" ///
+	227 "Warren County" ///
+	229 "Washington County" ///
+	231 "Wayne County" ///
+	233 "Webster County" ///
+	235 "Whitley County" ///
+	237 "Wolfe County" ///
+	239 "Woodford County"
+
+label values county KYCounties
+
+label values county county
+label var unemprate "Unemployment Rate"
+label var emp "Employment"
+label var unemp "Unemployment"
+label var ym "Year"
+
+collapse (sum) emp unemp lf, by(ym county)
+gen unemprate=(unemp/lf)*100
+sort ym
